@@ -36,8 +36,23 @@ return [
 
     'cookie' => [
         'name' => '_insights_id',
+        'session_name' => '_insights_s',
         'lifetime_days' => 395, // ~13 months, the common analytics maximum
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Consent getter (JavaScript)
+    |--------------------------------------------------------------------------
+    |
+    | Name of a window function the tracker calls to know whether cookies are
+    | allowed; it should return true (or the string 'accepted'). Can also be
+    | set per-site on the tag: {{ insights:tracker consent_getter="..." }}.
+    | Cookie banners can additionally call window._insights.consent(bool).
+    |
+    */
+
+    'consent_js_getter' => null,
 
     /*
     |--------------------------------------------------------------------------

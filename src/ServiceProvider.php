@@ -2,6 +2,8 @@
 
 namespace CorporateIp\Insights;
 
+use CorporateIp\Insights\Console\Commands\GeoUpdate;
+use Illuminate\Cookie\Middleware\EncryptCookies;
 use Statamic\Facades\CP\Nav;
 use Statamic\Facades\Permission;
 use Statamic\Providers\AddonServiceProvider;
@@ -18,6 +20,11 @@ class ServiceProvider extends AddonServiceProvider
 
     protected $routes = [
         'cp' => __DIR__.'/../routes/cp.php',
+        'actions' => __DIR__.'/../routes/actions.php',
+    ];
+
+    protected $commands = [
+        GeoUpdate::class,
     ];
 
     public function register()
@@ -31,9 +38,18 @@ class ServiceProvider extends AddonServiceProvider
 
     public function bootAddon()
     {
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+
         $this->publishes([
             __DIR__.'/../config/insights.php' => config_path('insights.php'),
         ], 'insights-config');
+
+        // The tracker sets these cookies client-side, so they arrive unencrypted —
+        // without this exception Laravel's cookie decryption would discard them.
+        EncryptCookies::except([
+            config('insights.cookie.name', '_insights_id'),
+            config('insights.cookie.session_name', '_insights_s'),
+        ]);
 
         $this->registerPermissions();
         $this->registerNav();

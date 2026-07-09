@@ -1,0 +1,21 @@
+<?php
+
+namespace CorporateIp\Insights\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Hit extends Model
+{
+    protected $table = 'insights_hits';
+
+    public $timestamps = false;
+
+    protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'visited_at' => 'datetime',
+        ];
+    }
+}
