@@ -1,0 +1,13 @@
+# Addon-local installs — the consuming site brings its own.
+/vendor
+/node_modules
+composer.lock
+
+# Vite dev-server marker. NOTE: dist/build IS committed on purpose, so sites and
+# servers can install the addon without running an npm build.
+/dist/hot
+
+.phpunit.result.cache
+.phpunit.cache
+.DS_Store
+Thumbs.db
