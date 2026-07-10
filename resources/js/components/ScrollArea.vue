@@ -67,6 +67,7 @@ onBeforeUnmount(() => resizeObserver?.disconnect());
 
 .insights-scroll {
     overflow-y: auto;
+    overflow-x: hidden;
     padding-inline-end: 0.875rem;
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;

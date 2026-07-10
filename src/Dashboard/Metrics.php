@@ -252,12 +252,16 @@ class Metrics
     {
         return $this->query()
             ->whereNotNull($column)
-            ->selectRaw("{$column} as label, COUNT(*) as count")
+            ->selectRaw("{$column} as label, COUNT(*) as count, COUNT(DISTINCT visitor_id) as visitors")
             ->groupBy($column)
             ->orderByDesc('count')
             ->limit(8)
             ->get()
-            ->map(fn ($row) => ['label' => $row->label, 'count' => (int) $row->count])
+            ->map(fn ($row) => [
+                'label' => $row->label,
+                'count' => (int) $row->count,
+                'visitors' => (int) $row->visitors,
+            ])
             ->all();
     }
 
@@ -265,12 +269,16 @@ class Metrics
     {
         return $this->query()
             ->whereNotNull('country')
-            ->selectRaw('country as code, COUNT(*) as views')
+            ->selectRaw('country as code, COUNT(*) as views, COUNT(DISTINCT visitor_id) as visitors')
             ->groupBy('country')
             ->orderByDesc('views')
             ->limit(50)
             ->get()
-            ->map(fn ($row) => ['code' => $row->code, 'views' => (int) $row->views])
+            ->map(fn ($row) => [
+                'code' => $row->code,
+                'views' => (int) $row->views,
+                'visitors' => (int) $row->visitors,
+            ])
             ->all();
     }
 }

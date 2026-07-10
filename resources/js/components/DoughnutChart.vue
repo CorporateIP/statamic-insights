@@ -4,12 +4,14 @@ import { Chart } from 'chart.js/auto';
 import { palette, paletteHover, prefersReducedMotion, surfaceColor, tickColor, tooltipOptions } from './theme.js';
 
 const props = defineProps({
-    items: { type: Array, required: true }, // [{ label, count }]
+    items: { type: Array, required: true }, // [{ label, count, visitors? }]
     heightClass: { type: String, default: 'h-52' },
 });
 
 const canvas = ref(null);
 let chart = null;
+
+const fmt = (n) => new Intl.NumberFormat().format(n);
 
 function render() {
     chart?.destroy();
@@ -39,7 +41,22 @@ function render() {
             ...(prefersReducedMotion() && { animation: false }),
             cutout: '68%',
             plugins: {
-                tooltip: tooltipOptions(),
+                tooltip: {
+                    ...tooltipOptions(),
+                    callbacks: {
+                        // Slices size by views; the tooltip carries both numbers.
+                        label: (context) => {
+                            const item = props.items[context.dataIndex] ?? {};
+                            const parts = [`${fmt(context.parsed)} ${__('views')}`];
+
+                            if (item.visitors !== undefined) {
+                                parts.push(`${fmt(item.visitors)} ${__('visitors')}`);
+                            }
+
+                            return ` ${parts.join(' · ')}`;
+                        },
+                    },
+                },
                 legend: {
                     position: 'bottom',
                     labels: {

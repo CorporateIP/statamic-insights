@@ -171,12 +171,12 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                             <Heading :text="__('Top pages')" />
                         </div>
                         <ScrollArea class="mt-3" max-height="20rem">
-                        <table class="w-full text-sm">
+                        <table class="w-full table-fixed text-sm">
                             <thead>
                                 <tr class="text-xs text-gray-500">
                                     <th class="pb-2 text-start font-normal" v-text="__('Page')" />
-                                    <th class="pb-2 ps-6 text-end font-normal" v-text="__('Visitors')" />
-                                    <th class="pb-2 ps-6 text-end font-normal" v-text="__('Views')" />
+                                    <th class="w-24 pb-2 ps-6 text-end font-normal" v-text="__('Visitors')" />
+                                    <th class="w-24 pb-2 ps-6 text-end font-normal" v-text="__('Views')" />
                                 </tr>
                             </thead>
                             <tbody>
@@ -227,14 +227,14 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
 
                         <ScrollArea class="mt-3" max-height="20rem">
                         <template v-if="sourceTab === 'referrers'">
-                            <table v-if="data.referrers.length" class="w-full text-sm">
+                            <table v-if="data.referrers.length" class="w-full table-fixed text-sm">
                                 <tbody>
                                     <tr v-for="referrer in data.referrers" :key="referrer.domain">
                                         <td class="relative py-1.5 pe-3">
                                             <div class="absolute inset-y-1 start-0 rounded" :style="barStyle(referrer.views, maxReferrerViews)"></div>
                                             <span class="relative block truncate ps-1.5" v-text="referrer.domain" />
                                         </td>
-                                        <td class="py-1.5 text-end font-medium tabular-nums" v-text="fmt(referrer.views)" />
+                                        <td class="w-24 py-1.5 text-end font-medium tabular-nums" v-text="fmt(referrer.views)" />
                                     </tr>
                                 </tbody>
                             </table>
@@ -242,12 +242,12 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                         </template>
 
                         <template v-else>
-                            <table v-if="data.campaigns.length" class="w-full text-sm">
+                            <table v-if="data.campaigns.length" class="w-full table-fixed text-sm">
                                 <thead>
                                     <tr class="text-xs text-gray-500">
                                         <th class="pb-2 text-start font-normal" v-text="__('Campaign')" />
                                         <th class="pb-2 text-start font-normal" v-text="__('Source')" />
-                                        <th class="pb-2 text-end font-normal" v-text="__('Views')" />
+                                        <th class="w-20 pb-2 text-end font-normal" v-text="__('Views')" />
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -292,11 +292,18 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                             <Icon name="earth" class="size-4 opacity-50" />
                             <Heading :text="__('Countries')" />
                         </div>
-                        <ScrollArea v-if="data.countries.length" class="mt-3" max-height="20rem">
+                        <template v-if="data.countries.length">
+                            <div class="mt-3 flex items-center gap-3 text-xs text-gray-500" style="padding-inline-end: 0.875rem">
+                                <span class="min-w-0 flex-1" />
+                                <span class="w-14 shrink-0 text-end" v-text="__('Visitors')" />
+                                <span class="w-16 shrink-0 text-end" v-text="__('Views')" />
+                                <span class="w-10 shrink-0 text-end">%</span>
+                            </div>
+                        <ScrollArea class="mt-2" max-height="18.5rem">
                             <ul class="space-y-2 text-sm">
                                 <li v-for="country in data.countries" :key="country.code">
-                                    <div class="flex items-center justify-between gap-3">
-                                        <span class="flex min-w-0 items-center gap-2">
+                                    <div class="flex items-center gap-3">
+                                        <span class="flex min-w-0 flex-1 items-center gap-2">
                                             <img
                                                 :src="`/vendor/statamic-insights/flags/${country.code.toLowerCase()}.svg`"
                                                 class="size-4 shrink-0 rounded-full"
@@ -306,10 +313,9 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                                             />
                                             <span class="truncate" :title="country.code" v-text="countryName(country.code)" />
                                         </span>
-                                        <span class="shrink-0 tabular-nums text-gray-500">
-                                            <span class="font-medium" v-text="fmt(country.views)" />
-                                            ({{ Math.round(countryShare(country.views)) }}%)
-                                        </span>
+                                        <span class="w-14 shrink-0 text-end tabular-nums text-gray-500" v-text="fmt(country.visitors)" />
+                                        <span class="w-16 shrink-0 text-end font-medium tabular-nums" v-text="fmt(country.views)" />
+                                        <span class="w-10 shrink-0 text-end text-xs tabular-nums text-gray-500" v-text="`${Math.round(countryShare(country.views))}%`" />
                                     </div>
                                     <div
                                         class="mt-1 h-1.5 w-full overflow-hidden rounded-full"
@@ -327,6 +333,7 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                                 </li>
                             </ul>
                         </ScrollArea>
+                        </template>
                         <p v-else class="mt-3 text-sm text-gray-500">
                             {{ __('No data yet - run insights:geo-update to enable country stats.') }}
                         </p>

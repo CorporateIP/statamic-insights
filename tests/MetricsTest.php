@@ -90,9 +90,9 @@ class MetricsTest extends TestCase
 
         $payload = Metrics::make('30d');
 
-        $this->assertSame(['label' => 'mobile', 'count' => 2], $payload['devices'][0]);
-        $this->assertSame(['label' => 'Safari', 'count' => 2], $payload['browsers'][0]);
-        $this->assertSame(['code' => 'NL', 'views' => 2], $payload['countries'][0]);
+        $this->assertSame(['label' => 'mobile', 'count' => 2, 'visitors' => 0], $payload['devices'][0]);
+        $this->assertSame(['label' => 'Safari', 'count' => 2, 'visitors' => 0], $payload['browsers'][0]);
+        $this->assertSame(['code' => 'NL', 'views' => 2, 'visitors' => 0], $payload['countries'][0]);
     }
 
     public function test_unknown_range_is_rejected(): void
