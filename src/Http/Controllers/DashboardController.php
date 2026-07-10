@@ -17,7 +17,7 @@ class DashboardController extends Controller
         return Inertia::render('insights::Dashboard', [
             'title' => __('Insights'),
             'dataUrl' => cp_route('insights.data'),
-            'initial' => Metrics::make('7d'),
+            'initial' => Metrics::cached('7d'),
         ]);
     }
 
@@ -27,13 +27,13 @@ class DashboardController extends Controller
 
         $metrics = new Metrics($request->query('range', '7d'));
 
-        // The realtime panel refreshes on its own 30s interval - let it fetch
-        // just that slice instead of recomputing the whole dashboard.
+        // The realtime slice refreshes on its own 30s interval and always
+        // bypasses the payload cache.
         if ($request->query('only') === 'realtime') {
             return response()->json(['realtime' => $metrics->realtime()]);
         }
 
-        return response()->json($metrics->payload());
+        return response()->json(Metrics::cached($request->query('range', '7d')));
     }
 
     private function authorizeView(): void

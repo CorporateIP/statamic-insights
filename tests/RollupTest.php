@@ -63,18 +63,29 @@ class RollupTest extends TestCase
 
     public function test_pruning_removes_only_rolled_up_days_past_retention(): void
     {
-        config(['insights.retention_days' => 1]);
-
-        $this->hit(['visited_at' => now()->subDays(3)]);
+        $this->hit(['visited_at' => now()->subDays(95)]); // past the 90-day retention
         $this->hit(['visited_at' => now()->subDays(2)]);
         $this->hit(['visited_at' => now()->subHours(2)]); // today: kept
 
         $this->artisan('insights:rollup')->assertSuccessful();
 
-        // Days older than the 1-day retention are pruned, today's raw hit stays.
-        $this->assertSame(1, Hit::count());
+        // Only the hit beyond retention is pruned; recent days stay raw.
+        $this->assertSame(2, Hit::count());
 
-        // The pruned days survive in the rollups.
-        $this->assertSame(1, (int) DB::table('insights_daily_totals')->where('date', today()->subDays(3)->toDateString())->value('views'));
+        // The pruned day survives in the rollups.
+        $this->assertSame(1, (int) DB::table('insights_daily_totals')->where('date', today()->subDays(95)->toDateString())->value('views'));
+    }
+
+    public function test_retention_below_the_longest_dashboard_range_is_clamped(): void
+    {
+        config(['insights.retention_days' => 1]);
+
+        $this->hit(['visited_at' => now()->subDays(3)]);
+        $this->hit(['visited_at' => now()->subDays(2)]);
+
+        $this->artisan('insights:rollup')->assertSuccessful();
+
+        // Nothing pruned: 1-day retention would punch holes in the 90-day view.
+        $this->assertSame(2, Hit::count());
     }
 }

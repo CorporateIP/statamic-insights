@@ -31,6 +31,10 @@ export function isDark() {
     return document.documentElement.classList.contains('dark');
 }
 
+export function prefersReducedMotion() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 /**
  * Categorical palette for identity data (browsers, devices): distinct hues in a
  * FIXED order, slot 1 anchored to the CP primary. Slots 2-8 are a

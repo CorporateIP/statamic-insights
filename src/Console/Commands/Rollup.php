@@ -168,10 +168,20 @@ class Rollup extends Command
             return 0;
         }
 
+        // The dashboard reads RAW hits only; pruning inside its longest range
+        // would silently punch holes in the 90-day view. Clamp until the
+        // dashboard learns to read the rollup tables for older days.
+        $configured = (int) config('insights.retention_days', 90);
+        $retention = max($configured, 90);
+
+        if ($configured < $retention) {
+            $this->components->warn("retention_days={$configured} is below the dashboard's longest range; using {$retention}.");
+        }
+
         // Whichever is OLDER wins: the retention cutoff, or the first day that
         // hasn't been rolled up yet - un-rolled raw data is never deleted.
         $cutoff = today()
-            ->subDays((int) config('insights.retention_days', 90))
+            ->subDays($retention)
             ->min(Carbon::parse($lastRolled)->addDay())
             ->startOfDay();
 

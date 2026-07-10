@@ -17,7 +17,7 @@ class InsightsWidget extends Widget
             return;
         }
 
-        $data = Metrics::make($this->config('range', '7d'));
+        $data = Metrics::cached($this->config('range', '7d'));
 
         return VueComponent::render('insights-widget', [
             'title' => $this->config('title', __('Insights')),

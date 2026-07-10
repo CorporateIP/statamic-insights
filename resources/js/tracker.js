@@ -82,5 +82,11 @@
         },
     };
 
-    hit();
+    // Chrome prerenders pages the visitor may never open (e.g. from search
+    // results); only count once the page is actually shown.
+    if (document.prerendering) {
+        document.addEventListener('prerenderingchange', hit, { once: true });
+    } else {
+        hit();
+    }
 })();

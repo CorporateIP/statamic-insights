@@ -13,6 +13,11 @@ watch(
     (to) => {
         cancelAnimationFrame(frame);
 
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            display.value = to;
+            return;
+        }
+
         const from = display.value;
         const start = performance.now();
         const duration = 500;

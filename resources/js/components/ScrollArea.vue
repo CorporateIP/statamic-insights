@@ -67,7 +67,7 @@ onBeforeUnmount(() => resizeObserver?.disconnect());
 
 .insights-scroll {
     overflow-y: auto;
-    padding-inline-end: 0.25rem;
+    padding-inline-end: 0.875rem;
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
 }
@@ -113,5 +113,11 @@ onBeforeUnmount(() => resizeObserver?.disconnect());
 
 .insights-scroll-fade.is-visible {
     opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .insights-scroll-fade {
+        transition: none;
+    }
 }
 </style>

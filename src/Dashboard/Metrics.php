@@ -5,6 +5,7 @@ namespace CorporateIp\Insights\Dashboard;
 use Carbon\CarbonPeriod;
 use CorporateIp\Insights\Models\Hit;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Statamic\Facades\Entry;
 
 /**
@@ -24,12 +25,14 @@ class Metrics
     {
         abort_unless(in_array($range, self::RANGES, true), 422, 'Unknown range.');
 
+        // Ranges snap to full days (today included), so the first chart bucket
+        // is never a silently-undercounted partial day.
         $this->end = now();
         $this->start = match ($range) {
             'today' => now()->startOfDay(),
-            '7d' => now()->subDays(7),
-            '30d' => now()->subDays(30),
-            '90d' => now()->subDays(90),
+            '7d' => now()->subDays(6)->startOfDay(),
+            '30d' => now()->subDays(29)->startOfDay(),
+            '90d' => now()->subDays(89)->startOfDay(),
         };
     }
 
@@ -71,7 +74,9 @@ class Metrics
             ->map(fn ($row) => ['path' => $row->path, 'views' => (int) $row->views])
             ->all();
 
-        return ['count' => $this->activeNow(), 'pages' => $pages];
+        $now = $this->activeNow();
+
+        return ['count' => $now['value'], 'unit' => $now['unit'], 'pages' => $pages];
     }
 
     private function query()
@@ -101,11 +106,13 @@ class Metrics
                 : null,
         ];
 
+        $now = $this->activeNow();
+
         return [
             'pageviews' => $tile('views'),
             'visitors' => $tile('visitors'),
             'sessions' => $tile('sessions'),
-            'now' => ['value' => $this->activeNow(), 'delta' => null],
+            'now' => ['value' => $now['value'], 'unit' => $now['unit'], 'delta' => null],
         ];
     }
 
@@ -121,16 +128,38 @@ class Metrics
     }
 
     /**
-     * Consented visitors active in the last 30 minutes; when there are none but
-     * anonymous pageviews are coming in, show those so "now" never lies dead.
+     * Consented visitors active in the last 30 minutes. With anonymous-only
+     * traffic there is no honest people-count, so the fallback reports the
+     * pageview count AS pageviews (the unit travels with the value) instead of
+     * pretending hits are humans.
+     *
+     * @return array{value: int, unit: string}
      */
-    private function activeNow(): int
+    private function activeNow(): array
     {
         $window = Hit::query()->where('visited_at', '>=', now()->subMinutes(30));
 
         $visitors = (int) (clone $window)->distinct()->count('visitor_id');
 
-        return $visitors > 0 ? $visitors : (int) $window->count();
+        if ($visitors > 0) {
+            return ['value' => $visitors, 'unit' => 'visitors'];
+        }
+
+        return ['value' => (int) $window->count(), 'unit' => 'views'];
+    }
+
+    /**
+     * Cached payload for dashboard/widget reads (the realtime slice always
+     * bypasses this via realtime()). 60s keeps repeated CP loads cheap without
+     * the numbers ever feeling stale.
+     */
+    public static function cached(string $range): array
+    {
+        return Cache::remember(
+            "insights.metrics.{$range}",
+            60,
+            fn () => self::make($range),
+        );
     }
 
     private function timeseries(): array

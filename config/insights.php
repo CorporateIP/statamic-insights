@@ -9,6 +9,8 @@ return [
     |
     | Raw pageview rows are rolled up into daily aggregates every night and
     | pruned after this many days. Aggregates are kept forever (they're tiny).
+    | Values below 90 are clamped to 90: the dashboard's longest range reads
+    | raw rows, and pruning inside it would punch holes in the statistics.
     |
     */
 

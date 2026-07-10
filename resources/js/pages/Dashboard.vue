@@ -60,10 +60,12 @@ const pages = computed(() => {
 
 const fmt = (n) => new Intl.NumberFormat().format(n);
 
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 const barStyle = (value, max) => ({
     width: `${(value / max) * 100}%`,
     backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
-    transition: 'width 0.7s cubic-bezier(0.22, 1, 0.36, 1)',
+    ...(reducedMotion ? {} : { transition: 'width 0.7s cubic-bezier(0.22, 1, 0.36, 1)' }),
 });
 
 async function setRange(key) {
@@ -97,6 +99,7 @@ async function refreshRealtime() {
         const { realtime } = await response.json();
         data.value.realtime = realtime;
         data.value.tiles.now.value = realtime.count;
+        data.value.tiles.now.unit = realtime.unit;
     } catch (e) {
         /* transient network errors: try again next tick */
     }
@@ -141,6 +144,12 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                                 <AnimatedNumber :value="stat.value" />
                             </span>
                             <span
+                                v-if="stat.unit === 'views'"
+                                class="text-xs text-gray-500"
+                                :title="__('No consented visitors in the window; showing anonymous pageviews.')"
+                                v-text="__('views')"
+                            />
+                            <span
                                 v-if="stat.delta !== null && stat.delta !== undefined"
                                 class="text-xs font-medium"
                                 :class="stat.delta >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
@@ -166,17 +175,17 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                             <thead>
                                 <tr class="text-xs text-gray-500">
                                     <th class="pb-2 text-start font-normal" v-text="__('Page')" />
-                                    <th class="pb-2 text-end font-normal" v-text="__('Visitors')" />
-                                    <th class="pb-2 text-end font-normal" v-text="__('Views')" />
+                                    <th class="pb-2 ps-6 text-end font-normal" v-text="__('Visitors')" />
+                                    <th class="pb-2 ps-6 text-end font-normal" v-text="__('Views')" />
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="page in pages" :key="page.path">
                                     <td class="relative py-1.5 pe-3">
                                         <div class="absolute inset-y-1 start-0 rounded" :style="barStyle(page.views, maxPageViews)"></div>
-                                        <span class="relative flex min-w-0 items-center gap-1.5 ps-1.5">
+                                        <span class="relative flex min-w-0 items-center gap-1.5 ps-1.5" :title="page.path">
                                             <span class="min-w-0 truncate" v-text="page.title ?? page.path" />
-                                            <span v-if="page.title" class="min-w-0 truncate text-xs text-gray-500" :title="page.path" v-text="page.path" />
+                                            <span v-if="page.title" class="min-w-0 truncate text-xs text-gray-500" v-text="page.path" />
                                             <span
                                                 v-if="page.activeNow"
                                                 class="inline-flex size-1.5 shrink-0 rounded-full bg-green-500"
@@ -184,8 +193,8 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                                             ></span>
                                         </span>
                                     </td>
-                                    <td class="py-1.5 text-end tabular-nums text-gray-500" v-text="fmt(page.visitors)" />
-                                    <td class="py-1.5 text-end font-medium tabular-nums" v-text="fmt(page.views)" />
+                                    <td class="py-1.5 ps-6 text-end tabular-nums text-gray-500" v-text="fmt(page.visitors)" />
+                                    <td class="py-1.5 ps-6 text-end font-medium tabular-nums" v-text="fmt(page.views)" />
                                 </tr>
                             </tbody>
                         </table>
@@ -349,5 +358,11 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
 
 .insights-rise {
     animation: insights-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .insights-rise {
+        animation: none;
+    }
 }
 </style>

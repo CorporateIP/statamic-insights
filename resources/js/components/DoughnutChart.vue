@@ -1,7 +1,7 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Chart } from 'chart.js/auto';
-import { palette, paletteHover, surfaceColor, tickColor, tooltipOptions } from './theme.js';
+import { palette, paletteHover, prefersReducedMotion, surfaceColor, tickColor, tooltipOptions } from './theme.js';
 
 const props = defineProps({
     items: { type: Array, required: true }, // [{ label, count }]
@@ -36,6 +36,7 @@ function render() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            ...(prefersReducedMotion() && { animation: false }),
             cutout: '68%',
             plugins: {
                 tooltip: tooltipOptions(),

@@ -74,8 +74,18 @@ page react immediately.
 
 Maintenance is self-scheduled (needs the standard `schedule:run` cron): nightly
 `insights:rollup` aggregates hits into daily tables and prunes raw rows past
-`retention_days` (default 90 - aggregates are kept forever), monthly `insights:geo-update`.
-Disable with `INSIGHTS_SCHEDULE=false` to schedule manually.
+`retention_days` (default 90, clamped to a minimum of 90 - aggregates are kept
+forever), monthly `insights:geo-update`. Disable with `INSIGHTS_SCHEDULE=false`
+to schedule manually.
+
+Two things worth knowing:
+
+- **Timezone**: all buckets and windows follow your app's `timezone` config. On
+  Laravel's default (`UTC`) the "Today" chart shows UTC hours - set
+  `app.timezone` (e.g. `Europe/Amsterdam`) for local days.
+- **Cookie policy**: after installing, document the two first-party cookies in
+  your site's cookie policy: `_insights_id` (visitor recognition, 13 months) and
+  `_insights_s` (session, 30 minutes) - both only set after consent.
 
 ## Credits
 

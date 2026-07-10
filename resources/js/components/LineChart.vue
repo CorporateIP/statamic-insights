@@ -1,7 +1,7 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Chart } from 'chart.js/auto';
-import { primary, tickColor, tooltipOptions } from './theme.js';
+import { prefersReducedMotion, primary, tickColor, tooltipOptions } from './theme.js';
 
 const props = defineProps({
     labels: { type: Array, required: true },
@@ -42,6 +42,7 @@ function render() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            ...(prefersReducedMotion() && { animation: false }),
             interaction: { mode: 'index', intersect: false },
             plugins: { legend: { display: false }, tooltip: tooltipOptions() },
             scales: props.minimal
