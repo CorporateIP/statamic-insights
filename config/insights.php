@@ -16,6 +16,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Scheduling
+    |--------------------------------------------------------------------------
+    |
+    | The addon schedules its own maintenance (nightly insights:rollup, monthly
+    | insights:geo-update) — the site only needs the standard schedule:run
+    | cron. Disable to manage scheduling yourself.
+    |
+    */
+
+    'schedule' => env('INSIGHTS_SCHEDULE', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Excluded paths
     |--------------------------------------------------------------------------
     |

@@ -1,8 +1,11 @@
 {
   "resources/js/cp.js": {
-    "file": "assets/cp-DyBlOoek.js",
+    "file": "assets/cp-DX-tGAiW.js",
     "name": "cp",
     "src": "resources/js/cp.js",
-    "isEntry": true
+    "isEntry": true,
+    "css": [
+      "assets/cp-3OO2Z0pP.css"
+    ]
   }
 }

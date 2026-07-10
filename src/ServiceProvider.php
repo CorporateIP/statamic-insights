@@ -3,7 +3,10 @@
 namespace CorporateIp\Insights;
 
 use CorporateIp\Insights\Console\Commands\GeoUpdate;
+use CorporateIp\Insights\Console\Commands\Rollup;
+use CorporateIp\Insights\Widgets\InsightsWidget;
 use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Support\Facades\Schedule;
 use Statamic\Facades\CP\Nav;
 use Statamic\Facades\Permission;
 use Statamic\Providers\AddonServiceProvider;
@@ -25,6 +28,11 @@ class ServiceProvider extends AddonServiceProvider
 
     protected $commands = [
         GeoUpdate::class,
+        Rollup::class,
+    ];
+
+    protected $widgets = [
+        InsightsWidget::class,
     ];
 
     public function register()
@@ -53,6 +61,24 @@ class ServiceProvider extends AddonServiceProvider
 
         $this->registerPermissions();
         $this->registerNav();
+        $this->registerSchedule();
+    }
+
+    /**
+     * Self-scheduling: nightly rollup + retention, monthly geo refresh. Sites
+     * only need the standard `schedule:run` cron. Opt out via insights.schedule.
+     */
+    private function registerSchedule(): void
+    {
+        if (! config('insights.schedule', true) || ! $this->app->runningInConsole()) {
+            return;
+        }
+
+        // Direct facade calls — an app->booted() wrapper here would register twice
+        // (Statamic boots addons from inside a booted callback, and Laravel both
+        // queues AND immediately fires callbacks added at that point).
+        Schedule::command('insights:rollup')->dailyAt('03:17');
+        Schedule::command('insights:geo-update')->monthlyOn(3, '04:07');
     }
 
     private function registerPermissions(): void

@@ -2,6 +2,8 @@
 
 namespace CorporateIp\Insights\Http\Controllers;
 
+use CorporateIp\Insights\Dashboard\Metrics;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Statamic\Facades\User;
@@ -10,20 +12,32 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        abort_unless(User::current()->can('view insights'), 403);
+        $this->authorizeView();
 
         return Inertia::render('insights::Dashboard', [
             'title' => __('Insights'),
-            // Placeholder until the tracking pipeline (stage B) and the real
-            // queries (stage C) land.
-            'stats' => [
-                'tiles' => [
-                    ['label' => __('Pageviews (7d)'), 'value' => '—'],
-                    ['label' => __('Unique visitors (7d)'), 'value' => '—'],
-                    ['label' => __('Sessions (7d)'), 'value' => '—'],
-                    ['label' => __('Visitors right now'), 'value' => '—'],
-                ],
-            ],
+            'dataUrl' => cp_route('insights.data'),
+            'initial' => Metrics::make('7d'),
         ]);
+    }
+
+    public function data(Request $request)
+    {
+        $this->authorizeView();
+
+        $metrics = new Metrics($request->query('range', '7d'));
+
+        // The realtime panel refreshes on its own 30s interval — let it fetch
+        // just that slice instead of recomputing the whole dashboard.
+        if ($request->query('only') === 'realtime') {
+            return response()->json(['realtime' => $metrics->realtime()]);
+        }
+
+        return response()->json($metrics->payload());
+    }
+
+    private function authorizeView(): void
+    {
+        abort_unless(User::current()->can('view insights'), 403);
     }
 }
