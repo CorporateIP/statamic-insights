@@ -82,7 +82,7 @@ class Rollup extends Command
                 ->selectRaw('COUNT(*) as views, COUNT(DISTINCT visitor_id) as visitors, COUNT(DISTINCT session_id) as sessions')
                 ->first();
 
-            // Zero-traffic days still get a totals row — it doubles as the
+            // Zero-traffic days still get a totals row - it doubles as the
             // "this day is done" bookmark for pendingDays() and prune().
             DB::table('insights_daily_totals')->insert([
                 'date' => $date,
@@ -169,7 +169,7 @@ class Rollup extends Command
         }
 
         // Whichever is OLDER wins: the retention cutoff, or the first day that
-        // hasn't been rolled up yet — un-rolled raw data is never deleted.
+        // hasn't been rolled up yet - un-rolled raw data is never deleted.
         $cutoff = today()
             ->subDays((int) config('insights.retention_days', 90))
             ->min(Carbon::parse($lastRolled)->addDay())

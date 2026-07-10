@@ -27,7 +27,7 @@ class DashboardController extends Controller
 
         $metrics = new Metrics($request->query('range', '7d'));
 
-        // The realtime panel refreshes on its own 30s interval — let it fetch
+        // The realtime panel refreshes on its own 30s interval - let it fetch
         // just that slice instead of recomputing the whole dashboard.
         if ($request->query('only') === 'realtime') {
             return response()->json(['realtime' => $metrics->realtime()]);

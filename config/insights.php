@@ -20,7 +20,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | The addon schedules its own maintenance (nightly insights:rollup, monthly
-    | insights:geo-update) — the site only needs the standard schedule:run
+    | insights:geo-update) - the site only needs the standard schedule:run
     | cron. Disable to manage scheduling yourself.
     |
     */
@@ -72,7 +72,7 @@ return [
     | Country resolution
     |--------------------------------------------------------------------------
     |
-    | Countries are resolved at ingest from a LOCAL IP database — the visitor
+    | Countries are resolved at ingest from a LOCAL IP database - the visitor
     | IP never leaves the server and is never stored. Download/refresh the
     | database with `php please insights:geo-update` (schedule it monthly).
     |

@@ -35,7 +35,7 @@ export function isDark() {
  * Categorical palette for identity data (browsers, devices): distinct hues in a
  * FIXED order, slot 1 anchored to the CP primary. Slots 2-8 are a
  * colorblind-validated set (worst adjacent deutan/protan ΔE 24.2 on light,
- * 10.3 on dark — the dark column is separately chosen steps, not a flip).
+ * 10.3 on dark - the dark column is separately chosen steps, not a flip).
  * Never cycle or re-derive hues; a 9th category folds into the same cycle.
  */
 const CATEGORICAL = {
@@ -57,7 +57,7 @@ export function palette(count) {
     return Array.from({ length: count }, (_, i) => slots[i % slots.length]);
 }
 
-/** Hover: the same hue nudged toward the ink color — never a different hue. */
+/** Hover: the same hue nudged toward the ink color - never a different hue. */
 export function paletteHover(count) {
     const target = isDark() ? 255 : 0;
 

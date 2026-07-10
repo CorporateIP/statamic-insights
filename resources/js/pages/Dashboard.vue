@@ -222,7 +222,7 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                                 <tbody>
                                     <tr v-for="c in data.campaigns" :key="`${c.campaign}-${c.source}`">
                                         <td class="truncate py-1.5 pe-3" v-text="c.campaign" />
-                                        <td class="truncate py-1.5 pe-3 text-gray-500" v-text="c.source ?? '—'" />
+                                        <td class="truncate py-1.5 pe-3 text-gray-500" v-text="c.source ?? '-'" />
                                         <td class="py-1.5 text-end font-medium tabular-nums" v-text="fmt(c.views)" />
                                     </tr>
                                 </tbody>
@@ -263,7 +263,7 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                             </li>
                         </ul>
                         <p v-else class="mt-3 text-sm text-gray-500">
-                            {{ __('No data yet — run insights:geo-update to enable country stats.') }}
+                            {{ __('No data yet - run insights:geo-update to enable country stats.') }}
                         </p>
                     </Card>
                 </div>

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Http;
 
 /**
  * Downloads/refreshes the local IP→country database (DB-IP Country Lite,
- * CC-BY-4.0 — "IP Geolocation by DB-IP", https://db-ip.com). Schedule monthly:
+ * CC-BY-4.0 - "IP Geolocation by DB-IP", https://db-ip.com). Schedule monthly:
  * the file is republished at the start of every month.
  */
 class GeoUpdate extends Command

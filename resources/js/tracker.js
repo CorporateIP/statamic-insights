@@ -1,4 +1,4 @@
-/*! Statamic Insights tracker — first-party, no third-party requests. */
+/*! Statamic Insights tracker - first-party, no third-party requests. */
 (function () {
     'use strict';
 
@@ -44,7 +44,7 @@
     }
 
     // With consent: ensure the visitor cookie (~13 months) + a rolling 30-minute
-    // session cookie. Without consent (or after withdrawal): remove both — the
+    // session cookie. Without consent (or after withdrawal): remove both - the
     // beacon then counts the pageview anonymously.
     function syncCookies() {
         if (consentGranted()) {

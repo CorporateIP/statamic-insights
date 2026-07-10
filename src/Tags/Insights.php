@@ -10,7 +10,7 @@ class Insights extends Tags
      * {{ insights:tracker consent_getter="cookieConsent" }}
      *
      * Renders the tracker script tag. `consent_getter` names a window function
-     * that returns true|'accepted' while cookies are allowed — the tracker
+     * that returns true|'accepted' while cookies are allowed - the tracker
      * checks it on every pageview and only then uses visitor/session cookies.
      */
     public function tracker(): string

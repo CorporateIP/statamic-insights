@@ -52,7 +52,7 @@ class ServiceProvider extends AddonServiceProvider
             __DIR__.'/../config/insights.php' => config_path('insights.php'),
         ], 'insights-config');
 
-        // The tracker sets these cookies client-side, so they arrive unencrypted —
+        // The tracker sets these cookies client-side, so they arrive unencrypted -
         // without this exception Laravel's cookie decryption would discard them.
         EncryptCookies::except([
             config('insights.cookie.name', '_insights_id'),
@@ -74,7 +74,7 @@ class ServiceProvider extends AddonServiceProvider
             return;
         }
 
-        // Direct facade calls — an app->booted() wrapper here would register twice
+        // Direct facade calls - an app->booted() wrapper here would register twice
         // (Statamic boots addons from inside a booted callback, and Laravel both
         // queues AND immediately fires callbacks added at that point).
         Schedule::command('insights:rollup')->dailyAt('03:17');

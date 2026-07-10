@@ -4,7 +4,7 @@ namespace CorporateIp\Insights\Support;
 
 /**
  * Tiny regex-based user-agent classifier. Deliberately coarse: analytics needs
- * "which browser family / OS / device class", not exact versions — and a full
+ * "which browser family / OS / device class", not exact versions - and a full
  * UA parser dependency is overkill for that.
  *
  * The full user agent string is never stored.

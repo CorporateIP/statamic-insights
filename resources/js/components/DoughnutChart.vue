@@ -23,7 +23,7 @@ function render() {
                     data: props.items.map((item) => item.count),
                     backgroundColor: palette(props.items.length),
                     hoverBackgroundColor: paletteHover(props.items.length),
-                    // 2px surface gap between slices — doubles as the colorblind
+                    // 2px surface gap between slices - doubles as the colorblind
                     // secondary cue alongside the legend.
                     borderColor: surfaceColor(),
                     borderWidth: 2,

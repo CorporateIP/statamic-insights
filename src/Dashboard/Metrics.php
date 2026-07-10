@@ -55,7 +55,7 @@ class Metrics
     }
 
     /**
-     * Activity in the last 30 minutes — independent of the selected range.
+     * Activity in the last 30 minutes - independent of the selected range.
      */
     public function realtime(): array
     {
