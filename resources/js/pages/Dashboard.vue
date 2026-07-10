@@ -5,6 +5,7 @@ import { Button, ButtonGroup, Card, Header, Heading, Icon, Subheading } from '@s
 import LineChart from '../components/LineChart.vue';
 import DoughnutChart from '../components/DoughnutChart.vue';
 import AnimatedNumber from '../components/AnimatedNumber.vue';
+import ScrollArea from '../components/ScrollArea.vue';
 
 const props = defineProps({
     title: { type: String, required: true },
@@ -160,7 +161,7 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                             <Icon name="eye" class="size-4 opacity-50" />
                             <Heading :text="__('Top pages')" />
                         </div>
-                        <div class="mt-3 overflow-y-auto pe-1" style="max-height: 20rem">
+                        <ScrollArea class="mt-3" max-height="20rem">
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="text-xs text-gray-500">
@@ -173,9 +174,9 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                                 <tr v-for="page in pages" :key="page.path">
                                     <td class="relative py-1.5 pe-3">
                                         <div class="absolute inset-y-1 start-0 rounded" :style="barStyle(page.views, maxPageViews)"></div>
-                                        <span class="relative flex items-center gap-1.5 ps-1.5">
-                                            <span class="truncate" :title="page.path" v-text="page.title ?? page.path" />
-                                            <span v-if="page.title" class="hidden truncate text-xs text-gray-500 sm:inline" v-text="page.path" />
+                                        <span class="relative flex min-w-0 items-center gap-1.5 ps-1.5">
+                                            <span class="min-w-0 truncate" v-text="page.title ?? page.path" />
+                                            <span v-if="page.title" class="min-w-0 truncate text-xs text-gray-500" :title="page.path" v-text="page.path" />
                                             <span
                                                 v-if="page.activeNow"
                                                 class="inline-flex size-1.5 shrink-0 rounded-full bg-green-500"
@@ -188,7 +189,7 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                                 </tr>
                             </tbody>
                         </table>
-                        </div>
+                        </ScrollArea>
                     </Card>
 
                     <Card class="insights-rise" style="animation-delay: 120ms">
@@ -215,7 +216,7 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                             </div>
                         </div>
 
-                        <div class="mt-3 overflow-y-auto pe-1" style="max-height: 20rem">
+                        <ScrollArea class="mt-3" max-height="20rem">
                         <template v-if="sourceTab === 'referrers'">
                             <table v-if="data.referrers.length" class="w-full text-sm">
                                 <tbody>
@@ -252,7 +253,7 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                                 {{ __('No UTM-tagged visits yet. Add ?utm_campaign=… to newsletter and social links to see them here.') }}
                             </p>
                         </template>
-                        </div>
+                        </ScrollArea>
                     </Card>
                 </div>
 
@@ -282,7 +283,7 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                             <Icon name="earth" class="size-4 opacity-50" />
                             <Heading :text="__('Countries')" />
                         </div>
-                        <div v-if="data.countries.length" class="mt-3 overflow-y-auto pe-1" style="max-height: 20rem">
+                        <ScrollArea v-if="data.countries.length" class="mt-3" max-height="20rem">
                             <ul class="space-y-2 text-sm">
                                 <li v-for="country in data.countries" :key="country.code">
                                     <div class="flex items-center justify-between gap-3">
@@ -316,7 +317,7 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                                     </div>
                                 </li>
                             </ul>
-                        </div>
+                        </ScrollArea>
                         <p v-else class="mt-3 text-sm text-gray-500">
                             {{ __('No data yet - run insights:geo-update to enable country stats.') }}
                         </p>
