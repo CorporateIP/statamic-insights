@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Head } from '@statamic/cms/inertia';
-import { Button, ButtonGroup, Card, Header, Heading, Subheading } from '@statamic/cms/ui';
+import { Button, ButtonGroup, Card, Header, Heading, Icon, Subheading } from '@statamic/cms/ui';
 import LineChart from '../components/LineChart.vue';
 import DoughnutChart from '../components/DoughnutChart.vue';
 import AnimatedNumber from '../components/AnimatedNumber.vue';
@@ -25,16 +25,30 @@ const loading = ref(false);
 const sourceTab = ref('referrers');
 
 const stats = computed(() => [
-    { label: 'Pageviews', ...data.value.tiles.pageviews },
-    { label: 'Unique visitors', ...data.value.tiles.visitors },
-    { label: 'Sessions', ...data.value.tiles.sessions },
-    { label: 'Active now', ...data.value.tiles.now, live: true },
+    { label: 'Pageviews', icon: 'eye', ...data.value.tiles.pageviews },
+    { label: 'Unique visitors', icon: 'users', ...data.value.tiles.visitors },
+    { label: 'Sessions', icon: 'time-clock', ...data.value.tiles.sessions },
+    { label: 'Active now', icon: 'pulse', ...data.value.tiles.now, live: true },
 ]);
 
 const hasData = computed(() => data.value.tiles.pageviews.value > 0 || data.value.tiles.now.value > 0);
 const maxPageViews = computed(() => Math.max(...data.value.pages.map((p) => p.views), 1));
 const maxReferrerViews = computed(() => Math.max(...data.value.referrers.map((r) => r.views), 1));
-const maxCountryViews = computed(() => Math.max(...data.value.countries.map((c) => c.views), 1));
+
+// Countries: bars fill against the COMBINED total, so widths read as share-of-all.
+const totalCountryViews = computed(() => data.value.countries.reduce((sum, c) => sum + c.views, 0));
+const countryShare = (views) => (totalCountryViews.value ? (views / totalCountryViews.value) * 100 : 0);
+
+// Localized full country names via the browser. Flag emojis are deliberately
+// not used: Windows does not render them (you'd see bare letters instead).
+const regionNames = new Intl.DisplayNames([document.documentElement.lang || 'en'], { type: 'region' });
+const countryName = (code) => {
+    try {
+        return regionNames.of(code.toUpperCase()) || code;
+    } catch (e) {
+        return code;
+    }
+};
 
 // Realtime activity folds into the Top pages rows as a live badge.
 const pages = computed(() => {
@@ -44,9 +58,6 @@ const pages = computed(() => {
 });
 
 const fmt = (n) => new Intl.NumberFormat().format(n);
-
-const flag = (code) =>
-    code.toUpperCase().replace(/./g, (c) => String.fromCodePoint(127397 + c.charCodeAt(0)));
 
 const barStyle = (value, max) => ({
     width: `${(value / max) * 100}%`,
@@ -117,6 +128,7 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                 <div class="grid grid-cols-2 gap-6 lg:grid-cols-4">
                     <div v-for="stat in stats" :key="stat.label">
                         <div class="flex items-center gap-2">
+                            <Icon :name="stat.icon" class="size-4 shrink-0 opacity-50" />
                             <Subheading :text="__(stat.label)" />
                             <span v-if="stat.live" class="relative flex size-2">
                                 <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
@@ -144,8 +156,12 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                 <!-- Pages + sources -->
                 <div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
                     <Card class="insights-rise" style="animation-delay: 60ms">
-                        <Heading :text="__('Top pages')" />
-                        <table class="mt-3 w-full text-sm">
+                        <div class="flex items-center gap-2">
+                            <Icon name="eye" class="size-4 opacity-50" />
+                            <Heading :text="__('Top pages')" />
+                        </div>
+                        <div class="mt-3 overflow-y-auto pe-1" style="max-height: 20rem">
+                        <table class="w-full text-sm">
                             <thead>
                                 <tr class="text-xs text-gray-500">
                                     <th class="pb-2 text-start font-normal" v-text="__('Page')" />
@@ -172,11 +188,15 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
                     </Card>
 
                     <Card class="insights-rise" style="animation-delay: 120ms">
                         <div class="flex items-center justify-between">
-                            <Heading :text="__('Sources')" />
+                            <div class="flex items-center gap-2">
+                                <Icon name="share-link" class="size-4 opacity-50" />
+                                <Heading :text="__('Sources')" />
+                            </div>
                             <div class="flex gap-1 text-xs">
                                 <button
                                     type="button"
@@ -195,8 +215,9 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                             </div>
                         </div>
 
+                        <div class="mt-3 overflow-y-auto pe-1" style="max-height: 20rem">
                         <template v-if="sourceTab === 'referrers'">
-                            <table v-if="data.referrers.length" class="mt-3 w-full text-sm">
+                            <table v-if="data.referrers.length" class="w-full text-sm">
                                 <tbody>
                                     <tr v-for="referrer in data.referrers" :key="referrer.domain">
                                         <td class="relative py-1.5 pe-3">
@@ -207,11 +228,11 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                                     </tr>
                                 </tbody>
                             </table>
-                            <p v-else class="mt-3 text-sm text-gray-500" v-text="__('No external referrers in this period.')" />
+                            <p v-else class="text-sm text-gray-500" v-text="__('No external referrers in this period.')" />
                         </template>
 
                         <template v-else>
-                            <table v-if="data.campaigns.length" class="mt-3 w-full text-sm">
+                            <table v-if="data.campaigns.length" class="w-full text-sm">
                                 <thead>
                                     <tr class="text-xs text-gray-500">
                                         <th class="pb-2 text-start font-normal" v-text="__('Campaign')" />
@@ -227,17 +248,21 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                                     </tr>
                                 </tbody>
                             </table>
-                            <p v-else class="mt-3 text-sm text-gray-500">
+                            <p v-else class="text-sm text-gray-500">
                                 {{ __('No UTM-tagged visits yet. Add ?utm_campaign=… to newsletter and social links to see them here.') }}
                             </p>
                         </template>
+                        </div>
                     </Card>
                 </div>
 
                 <!-- Technology + countries -->
                 <div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
                     <Card class="insights-rise" style="animation-delay: 180ms">
-                        <Heading :text="__('Technology')" />
+                        <div class="flex items-center gap-2">
+                            <Icon name="ui-browser-slider-2" class="size-4 opacity-50" />
+                            <Heading :text="__('Technology')" />
+                        </div>
                         <div class="mt-3 grid grid-cols-2 gap-4">
                             <div>
                                 <Subheading :text="__('Devices')" />
@@ -253,15 +278,45 @@ onBeforeUnmount(() => clearInterval(realtimeTimer));
                     </Card>
 
                     <Card class="insights-rise" style="animation-delay: 240ms">
-                        <Heading :text="__('Countries')" />
-                        <ul v-if="data.countries.length" class="mt-3 text-sm">
-                            <li v-for="country in data.countries" :key="country.code" class="relative flex items-center gap-2 py-1">
-                                <div class="absolute inset-y-0.5 start-0 rounded" :style="barStyle(country.views, maxCountryViews)"></div>
-                                <span class="relative ps-1.5" v-text="flag(country.code)" />
-                                <span class="relative flex-1" v-text="country.code" />
-                                <span class="relative font-medium tabular-nums" v-text="fmt(country.views)" />
-                            </li>
-                        </ul>
+                        <div class="flex items-center gap-2">
+                            <Icon name="earth" class="size-4 opacity-50" />
+                            <Heading :text="__('Countries')" />
+                        </div>
+                        <div v-if="data.countries.length" class="mt-3 overflow-y-auto pe-1" style="max-height: 20rem">
+                            <ul class="space-y-2 text-sm">
+                                <li v-for="country in data.countries" :key="country.code">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <span class="flex min-w-0 items-center gap-2">
+                                            <img
+                                                :src="`/vendor/statamic-insights/flags/${country.code.toLowerCase()}.svg`"
+                                                class="size-4 shrink-0 rounded-full"
+                                                alt=""
+                                                loading="lazy"
+                                                @error="$event.target.style.display = 'none'"
+                                            />
+                                            <span class="truncate" :title="country.code" v-text="countryName(country.code)" />
+                                        </span>
+                                        <span class="shrink-0 tabular-nums text-gray-500">
+                                            <span class="font-medium" v-text="fmt(country.views)" />
+                                            ({{ Math.round(countryShare(country.views)) }}%)
+                                        </span>
+                                    </div>
+                                    <div
+                                        class="mt-1 h-1.5 w-full overflow-hidden rounded-full"
+                                        style="background-color: color-mix(in srgb, var(--color-primary) 10%, transparent)"
+                                    >
+                                        <div
+                                            class="h-full rounded-full"
+                                            :style="{
+                                                width: `${countryShare(country.views)}%`,
+                                                backgroundColor: 'var(--color-primary)',
+                                                transition: 'width 0.7s cubic-bezier(0.22, 1, 0.36, 1)',
+                                            }"
+                                        ></div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
                         <p v-else class="mt-3 text-sm text-gray-500">
                             {{ __('No data yet - run insights:geo-update to enable country stats.') }}
                         </p>

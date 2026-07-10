@@ -35,6 +35,12 @@ class ServiceProvider extends AddonServiceProvider
         InsightsWidget::class,
     ];
 
+    // Bundled circle-flags SVGs (MIT, HatScripts/circle-flags) served from
+    // /vendor/statamic-insights/flags/{code}.svg - no third-party requests.
+    protected $publishables = [
+        __DIR__.'/../resources/flags' => 'flags',
+    ];
+
     public function register()
     {
         parent::register();
@@ -92,8 +98,11 @@ class ServiceProvider extends AddonServiceProvider
     private function registerNav(): void
     {
         Nav::extend(function ($nav) {
+            // Section by its UNTRANSLATED key: Statamic matches sections by name
+            // and translates at render time. Passing __('Tools') on a non-English
+            // CP would register a duplicate section next to the core one.
             $nav->create(__('Insights'))
-                ->section(__('Tools'))
+                ->section('Tools')
                 ->route('insights.dashboard')
                 ->icon('chart-monitoring-indicator')
                 ->can('view insights');

@@ -77,6 +77,12 @@ Maintenance is self-scheduled (needs the standard `schedule:run` cron): nightly
 `retention_days` (default 90 - aggregates are kept forever), monthly `insights:geo-update`.
 Disable with `INSIGHTS_SCHEDULE=false` to schedule manually.
 
+## Credits
+
+- Country flags: [circle-flags](https://github.com/HatScripts/circle-flags) (MIT), bundled
+  and served first-party from `/vendor/statamic-insights/flags/`.
+- Country database: [DB-IP Country Lite](https://db-ip.com) (CC-BY-4.0), "IP Geolocation by DB-IP".
+
 ## Tests
 
 ```bash

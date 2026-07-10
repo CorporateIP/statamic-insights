@@ -59,12 +59,14 @@ class Metrics
      */
     public function realtime(): array
     {
+        // Tighter window than the 30-minute count: the green dot on a page should
+        // mean "someone is looking at this right now", not "within the half hour".
         $pages = Hit::query()
-            ->where('visited_at', '>=', now()->subMinutes(30))
+            ->where('visited_at', '>=', now()->subMinutes(5))
             ->selectRaw('path, COUNT(*) as views')
             ->groupBy('path')
             ->orderByDesc('views')
-            ->limit(6)
+            ->limit(25)
             ->get()
             ->map(fn ($row) => ['path' => $row->path, 'views' => (int) $row->views])
             ->all();
@@ -175,7 +177,7 @@ class Metrics
             ->selectRaw('path, MAX(entry_id) as entry_id, COUNT(*) as views, COUNT(DISTINCT visitor_id) as visitors')
             ->groupBy('path')
             ->orderByDesc('views')
-            ->limit(10)
+            ->limit(25)
             ->get()
             ->map(fn ($row) => [
                 'path' => $row->path,
@@ -193,7 +195,7 @@ class Metrics
             ->selectRaw('utm_campaign as campaign, utm_source as source, COUNT(*) as views, COUNT(DISTINCT visitor_id) as visitors')
             ->groupBy('utm_campaign', 'utm_source')
             ->orderByDesc('views')
-            ->limit(10)
+            ->limit(25)
             ->get()
             ->map(fn ($row) => [
                 'campaign' => $row->campaign,
@@ -211,7 +213,7 @@ class Metrics
             ->selectRaw('referrer_domain as domain, COUNT(*) as views')
             ->groupBy('referrer_domain')
             ->orderByDesc('views')
-            ->limit(10)
+            ->limit(25)
             ->get()
             ->map(fn ($row) => ['domain' => $row->domain, 'views' => (int) $row->views])
             ->all();
@@ -237,7 +239,7 @@ class Metrics
             ->selectRaw('country as code, COUNT(*) as views')
             ->groupBy('country')
             ->orderByDesc('views')
-            ->limit(10)
+            ->limit(50)
             ->get()
             ->map(fn ($row) => ['code' => $row->code, 'views' => (int) $row->views])
             ->all();
