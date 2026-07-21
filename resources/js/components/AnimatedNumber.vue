@@ -1,5 +1,6 @@
 <script setup>
 import { onBeforeUnmount, ref, watch } from 'vue';
+import { fmt } from './locale.js';
 
 const props = defineProps({
     value: { type: Number, required: true },
@@ -37,5 +38,5 @@ onBeforeUnmount(() => cancelAnimationFrame(frame));
 </script>
 
 <template>
-    <span v-text="new Intl.NumberFormat().format(display)" />
+    <span v-text="fmt(display)" />
 </template>

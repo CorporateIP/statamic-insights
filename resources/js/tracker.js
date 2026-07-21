@@ -5,9 +5,18 @@
     // Headless browsers announce themselves here; don't count them.
     if (navigator.webdriver) return;
 
+    // Personal opt-out: run localStorage.setItem('insights_ignore', 'true')
+    // in your own browser's console to stop counting yourself.
+    try {
+        if (localStorage.getItem('insights_ignore') === 'true') return;
+    } catch (e) {
+        /* storage may be blocked; keep counting */
+    }
+
     var script = document.currentScript || {};
     var ds = script.dataset || {};
     var endpoint = ds.endpoint || '/!/statamic-insights/hit';
+    var eventEndpoint = ds.eventEndpoint || '/!/statamic-insights/event';
     var getter = ds.consentGetter; // name of a window function returning true|'accepted' when cookies are allowed
     var ID_COOKIE = '_insights_id';
     var SESSION_COOKIE = '_insights_s';
@@ -74,11 +83,30 @@
         }
     }
 
-    // Public API for cookie banners: window._insights.consent(true|false)
+    // Public API: window._insights.consent(true|false) for cookie banners,
+    // window._insights.event('name', {key: 'value'}) for custom events.
     window._insights = {
         consent: function (granted) {
             consentOverride = !!granted;
             syncCookies();
+        },
+        event: function (name, props) {
+            syncCookies();
+            try {
+                fetch(eventEndpoint, {
+                    method: 'POST',
+                    keepalive: true,
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: String(name),
+                        path: location.pathname + location.search,
+                        props: props || null,
+                    }),
+                });
+            } catch (e) {
+                /* analytics must never break the page */
+            }
         },
     };
 

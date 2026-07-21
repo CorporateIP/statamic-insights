@@ -45,6 +45,62 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Excluded traffic
+    |--------------------------------------------------------------------------
+    |
+    | exclude_cp_users drops hits from logged-in users who can access the
+    | Control Panel, so editors browsing their own site don't inflate the
+    | numbers. exclude_ips drops hits from matching IPs (wildcards supported,
+    | e.g. '192.168.*'). Individual visitors can also exclude their own browser
+    | with: localStorage.setItem('insights_ignore', 'true').
+    |
+    */
+
+    'exclude_cp_users' => env('INSIGHTS_EXCLUDE_CP_USERS', true),
+
+    'exclude_ips' => [
+        // '203.0.113.7',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | 404 tracking
+    |--------------------------------------------------------------------------
+    |
+    | Records page-not-found responses (as the built-in `404` event) so broken
+    | links show up in the dashboard. Asset-like URLs (with a file extension)
+    | and crawler traffic are ignored.
+    |
+    */
+
+    'track_404' => env('INSIGHTS_TRACK_404', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Entry action
+    |--------------------------------------------------------------------------
+    |
+    | Adds a "View in Insights" action to every entry (list + publish form)
+    | that opens the dashboard filtered to that entry's URL.
+    |
+    */
+
+    'entry_action' => true,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Flat-file storage
+    |--------------------------------------------------------------------------
+    |
+    | Goals and Insights settings are stored as YAML here - version-controlled
+    | alongside the rest of your Statamic content.
+    |
+    */
+
+    'storage_path' => base_path('content/insights'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Visitor cookie (only set after the site reports consent)
     |--------------------------------------------------------------------------
     */

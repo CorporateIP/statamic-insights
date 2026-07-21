@@ -1,6 +1,7 @@
 <script setup>
 import { Card, Heading, Subheading } from '@statamic/cms/ui';
 import LineChart from './LineChart.vue';
+import { fmt } from './locale.js';
 
 defineProps({
     title: { type: String, required: true },
@@ -8,8 +9,6 @@ defineProps({
     timeseries: { type: Object, required: true },
     url: { type: String, required: true },
 });
-
-const fmt = (n) => new Intl.NumberFormat().format(n);
 </script>
 
 <template>
@@ -39,6 +38,6 @@ const fmt = (n) => new Intl.NumberFormat().format(n);
             </div>
         </div>
 
-        <LineChart class="mt-3" height-class="h-20" minimal :labels="timeseries.labels" :values="timeseries.views" />
+        <LineChart class="mt-3" height-class="h-20" minimal :labels="timeseries.labels" :values="timeseries.views" :label="__('Pageviews')" />
     </Card>
 </template>

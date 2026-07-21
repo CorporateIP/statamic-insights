@@ -8,6 +8,18 @@ First-party analytics for Statamic 6 with a full Control Panel dashboard. By Cor
 - Country stats from a local IP database - visitor IPs are never stored or shared.
 - Dashboard: pageviews, uniques, sessions, realtime, top pages, referrers, countries,
   devices, UTM campaigns, per-entry stats. Plus a CP-home widget (`type: insights`).
+- Speaks every language Statamic itself ships (28 + English) and follows each CP
+  user's own language preference - labels, dates, numbers and country names.
+- Goals & conversions (page visits, custom events, and Statamic form submissions -
+  the latter tracked server-side with zero JavaScript), managed in the CP and
+  stored as version-controlled YAML.
+- Bounce rate, visit duration, one-click filtering, custom date ranges up to
+  all-time (long ranges read tiny daily aggregates), CSV export, 404 tracking,
+  multi-site support, and weekly/monthly email reports.
+- Statamic-native: a "View in Insights" action on every entry, and a
+  `{{ insights:popular }}` tag for "most read" lists on the front end.
+- Editors browsing their own site aren't counted (logged-in CP users are
+  excluded by default; IP list + per-browser opt-out included).
 
 ## Installing into a site
 
@@ -86,6 +98,60 @@ Two things worth knowing:
 - **Cookie policy**: after installing, document the two first-party cookies in
   your site's cookie policy: `_insights_id` (visitor recognition, 13 months) and
   `_insights_s` (session, 30 minutes) - both only set after consent.
+
+## Goals, events and reports
+
+**Goals** live in the CP (Insights → cog icon, needs the *Configure Insights*
+permission) and are stored in `content/insights/goals.yaml`. Three types:
+
+- **Page visit** - a path, wildcards allowed (`/bedankt`, `/docs/*`). Retroactive:
+  a new goal immediately shows historic conversions within the retention window.
+- **Custom event** - fired from your front end:
+  `window._insights.event('newsletter-signup', { plan: 'pro' })`.
+- **Form submission** - pick a Statamic form; submissions convert server-side,
+  so no JavaScript is involved and the static cache doesn't matter.
+
+**Email reports** (same settings screen): weekly and/or monthly digest to any
+addresses - recipients don't need a CP account.
+
+**Popular entries** on the front end:
+
+```antlers
+{{ insights:popular collection="blog" limit="5" days="30" }}
+    <a href="{{ url }}">{{ title }}</a> ({{ views }})
+{{ /insights:popular }}
+```
+
+**Excluding yourselves**: logged-in CP users are never counted (disable via
+`insights.exclude_cp_users`), IPs can be listed in `insights.exclude_ips`, and
+any individual browser opts out with
+`localStorage.setItem('insights_ignore', 'true')`.
+
+## Languages
+
+The dashboard and widget render in the language each CP user has set (their
+Statamic `locale` preference, falling back to the app locale) - not just the site
+default. That covers UI labels, chart date labels, number formatting and localized
+country names, including right-to-left languages (Arabic, Persian).
+
+Insights ships translations for every language Statamic itself ships: `ar`, `az`,
+`cs`, `da`, `de`, `de_CH`, `es`, `et`, `fa`, `fr`, `hu`, `id`, `it`, `ja`, `ms`,
+`nb`, `nl`, `pl`, `pt`, `pt_BR`, `ru`, `sl`, `sv`, `tr`, `uk`, `vi`, `zh_CN`,
+`zh_TW` (English is the source language). Untranslated locales fall back to
+English.
+
+To override a string (or add a locale we don't ship), put the English source
+string as a key in your app's own `lang/{locale}.json` - app translations win
+over the addon's:
+
+```json
+{
+    "Pageviews": "Impressies"
+}
+```
+
+`tests/TranslationsTest.php` enforces that every locale file stays complete, so a
+new UI string cannot ship half-translated.
 
 ## Credits
 

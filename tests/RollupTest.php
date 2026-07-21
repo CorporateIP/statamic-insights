@@ -2,9 +2,13 @@
 
 namespace CorporateIp\Insights\Tests;
 
+use CorporateIp\Insights\Goals\Goal;
+use CorporateIp\Insights\Goals\GoalRepository;
+use CorporateIp\Insights\Models\Event;
 use CorporateIp\Insights\Models\Hit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class RollupTest extends TestCase
 {
@@ -87,5 +91,46 @@ class RollupTest extends TestCase
 
         // Nothing pruned: 1-day retention would punch holes in the 90-day view.
         $this->assertSame(2, Hit::count());
+    }
+
+    public function test_rollups_carry_the_site_and_split_per_site(): void
+    {
+        $this->hit(['site' => 'english', 'path' => '/about']);
+        $this->hit(['site' => 'english', 'path' => '/about']);
+        $this->hit(['site' => 'dutch', 'path' => '/over-ons']);
+
+        $this->artisan('insights:rollup')->assertSuccessful();
+
+        $date = today()->subDays(2)->toDateString();
+
+        $this->assertSame(2, (int) DB::table('insights_daily_totals')->where('date', $date)->where('site', 'english')->value('views'));
+        $this->assertSame(1, (int) DB::table('insights_daily_totals')->where('date', $date)->where('site', 'dutch')->value('views'));
+        $this->assertSame('english', DB::table('insights_daily_pages')->where('path', '/about')->value('site'));
+    }
+
+    public function test_events_and_goals_roll_up_and_events_are_pruned(): void
+    {
+        $storage = sys_get_temp_dir().'/insights-tests-'.uniqid();
+        config(['insights.storage_path' => $storage]);
+
+        app(GoalRepository::class)->save(new Goal('bedankt', 'Bedankt', 'path', '/bedankt'));
+        app(GoalRepository::class)->save(new Goal('signup', 'Signup', 'event', 'signup'));
+
+        $this->hit(['visited_at' => now()->subDays(2), 'path' => '/bedankt']);
+        Event::create(['visited_at' => now()->subDays(2), 'name' => 'signup', 'path' => '/', 'site' => 'default']);
+        Event::create(['visited_at' => now()->subDays(95), 'name' => 'signup', 'path' => '/']); // beyond retention
+
+        $this->artisan('insights:rollup')->assertSuccessful();
+
+        $date = today()->subDays(2)->toDateString();
+
+        $this->assertSame(1, (int) DB::table('insights_daily_goals')->where('date', $date)->where('goal', 'bedankt')->value('conversions'));
+        $this->assertSame(1, (int) DB::table('insights_daily_goals')->where('date', $date)->where('goal', 'signup')->value('conversions'));
+        $this->assertSame(1, (int) DB::table('insights_daily_dims')->where('date', $date)->where('dimension', 'event')->where('value', 'signup')->value('views'));
+
+        // The 95-day-old event is pruned; the recent one stays raw.
+        $this->assertSame(1, Event::count());
+
+        File::deleteDirectory($storage);
     }
 }

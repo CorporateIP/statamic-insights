@@ -2,6 +2,7 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Chart } from 'chart.js/auto';
 import { palette, paletteHover, prefersReducedMotion, surfaceColor, tickColor, tooltipOptions } from './theme.js';
+import { fmt } from './locale.js';
 
 const props = defineProps({
     items: { type: Array, required: true }, // [{ label, count, visitors? }]
@@ -10,8 +11,6 @@ const props = defineProps({
 
 const canvas = ref(null);
 let chart = null;
-
-const fmt = (n) => new Intl.NumberFormat().format(n);
 
 function render() {
     chart?.destroy();

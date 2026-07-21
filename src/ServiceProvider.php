@@ -2,17 +2,29 @@
 
 namespace CorporateIp\Insights;
 
+use CorporateIp\Insights\Actions\ViewInInsights;
 use CorporateIp\Insights\Console\Commands\GeoUpdate;
 use CorporateIp\Insights\Console\Commands\Rollup;
+use CorporateIp\Insights\Console\Commands\SendReport;
+use CorporateIp\Insights\Goals\GoalRepository;
+use CorporateIp\Insights\Http\Middleware\RecordNotFound;
+use CorporateIp\Insights\Listeners\RecordFormSubmission;
+use CorporateIp\Insights\Support\Settings;
 use CorporateIp\Insights\Widgets\InsightsWidget;
+use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Support\Facades\Schedule;
+use Statamic\Events\SubmissionCreated;
 use Statamic\Facades\CP\Nav;
 use Statamic\Facades\Permission;
 use Statamic\Providers\AddonServiceProvider;
 
 class ServiceProvider extends AddonServiceProvider
 {
+    protected $listen = [
+        SubmissionCreated::class => [RecordFormSubmission::class],
+    ];
+
     protected $vite = [
         'publicDirectory' => 'dist',
         'hotFile' => 'vendor/insights/hot',
@@ -29,10 +41,15 @@ class ServiceProvider extends AddonServiceProvider
     protected $commands = [
         GeoUpdate::class,
         Rollup::class,
+        SendReport::class,
     ];
 
     protected $widgets = [
         InsightsWidget::class,
+    ];
+
+    protected $actions = [
+        ViewInInsights::class,
     ];
 
     // Bundled circle-flags SVGs (MIT, HatScripts/circle-flags) served from
@@ -48,11 +65,21 @@ class ServiceProvider extends AddonServiceProvider
         // Manual merge: the auto-boot convention would register the config under
         // the addon slug ('statamic-insights'); we want the cleaner 'insights' key.
         $this->mergeConfigFrom(__DIR__.'/../config/insights.php', 'insights');
+
+        // Singletons: both cache their YAML file in memory per request.
+        $this->app->singleton(GoalRepository::class);
+        $this->app->singleton(Settings::class);
     }
 
     public function bootAddon()
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+
+        // Statamic only registers addon lang dirs for NAMESPACED PHP files; our
+        // bare-English-string keys live in lang/{locale}.json, which must be
+        // registered as a JSON path to reach both PHP __() and the CP's JS
+        // translation dictionary (Translator::toJson merges JSON paths into '*').
+        $this->loadJsonTranslationsFrom(__DIR__.'/../lang');
 
         $this->publishes([
             __DIR__.'/../config/insights.php' => config_path('insights.php'),
@@ -64,6 +91,11 @@ class ServiceProvider extends AddonServiceProvider
             config('insights.cookie.name', '_insights_id'),
             config('insights.cookie.session_name', '_insights_s'),
         ]);
+
+        // Global (not route) middleware: 404s are rendered by the exception
+        // handler, so only global middleware reliably sees the final response.
+        // All work happens in terminate(), after the response is sent.
+        $this->app[Kernel::class]->pushMiddleware(RecordNotFound::class);
 
         $this->registerPermissions();
         $this->registerNav();
@@ -85,13 +117,22 @@ class ServiceProvider extends AddonServiceProvider
         // queues AND immediately fires callbacks added at that point).
         Schedule::command('insights:rollup')->dailyAt('03:17');
         Schedule::command('insights:geo-update')->monthlyOn(3, '04:07');
+
+        // The command checks the CP-managed toggles itself; a disabled
+        // frequency is a no-op run.
+        Schedule::command('insights:send-report weekly')->weeklyOn(1, '07:30');
+        Schedule::command('insights:send-report monthly')->monthlyOn(1, '07:45');
     }
 
     private function registerPermissions(): void
     {
         Permission::extend(function () {
             Permission::register('view insights')
-                ->label(__('View Insights'));
+                ->label(__('View Insights'))
+                ->children([
+                    Permission::make('configure insights')
+                        ->label(__('Configure Insights')),
+                ]);
         });
     }
 
