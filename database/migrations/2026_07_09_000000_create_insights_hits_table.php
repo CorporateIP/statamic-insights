@@ -10,7 +10,11 @@ return new class extends Migration
     {
         Schema::create('insights_hits', function (Blueprint $table) {
             $table->id();
-            $table->timestamp('visited_at');
+            // DATETIME, not TIMESTAMP: a bare MySQL/MariaDB TIMESTAMP column
+            // (the first one in a table, with explicit_defaults_for_timestamp
+            // OFF) silently gets ON UPDATE CURRENT_TIMESTAMP, which rewrites the
+            // value on any UPDATE to the row. DATETIME has no such behaviour.
+            $table->dateTime('visited_at');
             $table->string('path');
             $table->string('entry_id', 36)->nullable();
             $table->string('referrer_domain')->nullable();

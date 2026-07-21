@@ -2,6 +2,19 @@
 
 All notable changes to Statamic Insights are documented here.
 
+## v1.0.1 - 2026-07-21
+
+### Fixed
+- **`visited_at` no longer silently resets on MySQL/MariaDB.** With
+  `explicit_defaults_for_timestamp` OFF (the MariaDB default before 10.10), a bare
+  `TIMESTAMP` column implicitly gains `ON UPDATE CURRENT_TIMESTAMP`, so v1.0.0's
+  multisite `site` backfill rewrote every historical hit time to the moment the
+  migration ran. `insights_hits.visited_at` and `insights_events.visited_at` are
+  now `DATETIME` (no auto-update); the site backfill assigns `visited_at` to itself
+  to suppress the reset; and a new migration converts the columns to `DATETIME` on
+  already-migrated installs. Times overwritten by v1.0.0 can't be recovered without
+  a pre-upgrade database backup.
+
 ## v1.0.0
 
 ### Added

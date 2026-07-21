@@ -15,13 +15,23 @@ return new class extends Migration
             $table->index(['site', 'visited_at']);
         });
 
-        DB::table('insights_hits')->whereNull('site')->update(['site' => $this->defaultSite()]);
+        // Assign visited_at to itself in the same UPDATE so MySQL/MariaDB's
+        // implicit ON UPDATE CURRENT_TIMESTAMP (present on the old bare TIMESTAMP
+        // column when explicit_defaults_for_timestamp is OFF) can't silently
+        // rewrite every historical hit time to "now". Explicitly setting the
+        // column in the UPDATE suppresses the auto-update.
+        DB::table('insights_hits')->whereNull('site')->update([
+            'site' => $this->defaultSite(),
+            'visited_at' => DB::raw('visited_at'),
+        ]);
 
         // Custom events (window._insights.event), form submissions (form:handle)
         // and 404s. Pageviews stay in insights_hits.
         Schema::create('insights_events', function (Blueprint $table) {
             $table->id();
-            $table->timestamp('visited_at');
+            // DATETIME, not TIMESTAMP - see the hits table note; a bare TIMESTAMP
+            // gets an implicit ON UPDATE CURRENT_TIMESTAMP on MySQL/MariaDB.
+            $table->dateTime('visited_at');
             $table->string('site', 32)->nullable();
             $table->string('name', 64);
             $table->string('path');
