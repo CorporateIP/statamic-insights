@@ -2,6 +2,17 @@
 
 All notable changes to Statamic Insights are documented here.
 
+## v1.0.2 - 2026-07-21
+
+### Fixed
+- **Path goals no longer 500 the dashboard and nightly rollup on MySQL/MariaDB.**
+  The goal path `LIKE` query used `ESCAPE '\'`; SQLite accepts a lone backslash
+  there but MariaDB/MySQL don't (the backslash escapes the closing quote → SQL
+  syntax error 1064), so the dashboard errored as soon as a path goal existed and
+  `insights:rollup` would fail whenever one was defined. The `LIKE` escape
+  character is now `!`, which is literal on every driver. (SQLite-only test
+  coverage didn't surface this.)
+
 ## v1.0.1 - 2026-07-21
 
 ### Fixed

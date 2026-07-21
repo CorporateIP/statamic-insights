@@ -213,7 +213,7 @@ class Rollup extends Command
         foreach (app(GoalRepository::class)->all() as $goal) {
             /** @var Goal $goal */
             $query = $goal->type === 'path'
-                ? Hit::query()->whereBetween('visited_at', $window)->whereRaw("path like ? escape '\\'", [$goal->likePattern()])
+                ? Hit::query()->whereBetween('visited_at', $window)->whereRaw("path like ? escape '!'", [$goal->likePattern()])
                 : Event::query()->whereBetween('visited_at', $window)->where('name', $goal->eventName());
 
             $grouped = $query

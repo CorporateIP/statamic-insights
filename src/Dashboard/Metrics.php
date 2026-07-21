@@ -558,7 +558,7 @@ class Metrics
 
         return $goals->map(function (Goal $goal) use ($totalVisitors) {
             $query = $goal->type === 'path'
-                ? $this->query()->whereRaw("path like ? escape '\\'", [$goal->likePattern()])
+                ? $this->query()->whereRaw("path like ? escape '!'", [$goal->likePattern()])
                 : $this->eventQuery()->where('name', $goal->eventName());
 
             $row = $query->selectRaw('COUNT(*) as conversions, COUNT(DISTINCT visitor_id) as visitors')->first();

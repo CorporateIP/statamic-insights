@@ -48,12 +48,15 @@ class Goal implements Arrayable
     }
 
     /**
-     * The path pattern as a LIKE pattern (* -> %). Use with an explicit
-     * "ESCAPE '\'" clause - SQLite has no default escape character.
+     * The path pattern as a LIKE pattern (* -> %). Paired with an explicit
+     * "ESCAPE '!'" clause. The escape char is '!', not backslash: a backslash
+     * escape works on SQLite but is a syntax error on MySQL/MariaDB (a lone
+     * backslash escapes the closing quote). '!' has no special meaning inside a
+     * string literal on any driver, and SQLite has no default escape character.
      */
     public function likePattern(): string
     {
-        return str_replace(['\\', '%', '_', '*'], ['\\\\', '\\%', '\\_', '%'], $this->value);
+        return str_replace(['!', '%', '_', '*'], ['!!', '!%', '!_', '%'], $this->value);
     }
 
     public function toArray(): array
